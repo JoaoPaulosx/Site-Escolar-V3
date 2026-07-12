@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduBank - Painel de Controle de Pontos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 5px;
+        }
+
+        .welcome-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* --- FORMULÁRIOS --- */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #f1f5f9;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid var(--primary);
+            background: #fff;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        button.logout-btn {
+            background-color: var(--danger);
+            margin-top: 20px;
+        }
+        button.logout-btn:hover {
+            background-color: var(--danger-dark);
+        }
+
+        /* --- CARD DE SALDO --- */
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* --- SEÇÕES DE GERENCIAMENTO --- */
+        .management-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--border);
+        }
+
+        .user-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .user-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+            margin-left: 5px;
+        }
+        .badge-prof { background-color: #8b5cf6; }
+        .badge-aluno { background-color: #06b6d4; }
+
+        .btn-delete {
+            background-color: var(--danger);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            width: auto;
+            margin-top: 0;
+        }
+        .btn-delete:hover {
+            background-color: var(--danger-dark);
+        }
+
+        /* --- EXTRATO --- */
+        .history-list {
+            list-style: none;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. TELA DE LOGIN -->
+    <div id="login-screen" class="container">
+        <h2>🏫 EduBank Login</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" required placeholder="Digite seu usuário">
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" required placeholder="Digite sua senha">
+            </div>
+            <button type="submit">Entrar no Sistema</button>
+        </form>
+        <div class="hint">
+            <strong>Acesso Padrão:</strong><br>
+            Professor: <code>prof.carlos</code> (senha: 123)<br>
+            Alunos: <code>ana.silva</code> ou <code>joao.pedro</code> (senha: 123)
+        </div>
+    </div>
+
+    <!-- 2. PAINEL DO PROFESSOR (COM GERENCIADOR) -->
+    <div id="teacher-screen" class="container hidden">
+        <h2>Painel Administrativo</h2>
+        <div class="welcome-text" id="teacher-welcome">Olá, Professor</div>
+        
+        <!-- Bloco de Transferência -->
+        <form id="transfer-form">
+            <h3>💸 Distribuir Pontos</h3>
+            <div class="form-group">
+                <label for="select-student">Selecione o Aluno:</label>
+                <select id="select-student" required></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="points-amount">Quantidade:</label>
+                    <input type="number" id="points-amount" min="1" required placeholder="Ex: 10">
+                </div>
+                <div class="form-group">
+                    <label for="transfer-reason">Motivo:</label>
+                    <input type="text" id="transfer-reason" required placeholder="Ex: Redação">
+                </div>
+            </div>
+            <button type="submit">Transferir Pontos</button>
+        </form>
+
+        <!-- NOVO: GERENCIAMENTO DE CONTAS -->
+        <div class="management-section">
+            <h3>👥 Gerenciar Alunos e Professores</h3>
+            
+            <!-- Lista de Usuários Existentes -->
+            <label>Usuários Cadastrados:</label>
+            <ul class="user-list" id="system-users-list">
+                <!-- Preenchido via JS -->
+            </ul>
+
+            <!-- Formulário para Criar Novo Usuário -->
+            <form id="add-user-form" style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
+                <strong style="font-size: 0.9rem; display:block; margin-bottom: 10px;">➕ Adicionar Novo Usuário</strong>
+                
+                <div class="form-group">
+                    <input type="text" id="new-name" required placeholder="Nome Completo (Ex: Lucas Souza)">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="new-username" required placeholder="Usuário (Ex: lucas.s)">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="new-password" required placeholder="Senha de Acesso">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <select id="new-role" required>
+                            <option value="student">Papel: Aluno</option>
+                            <option value="teacher">Papel: Professor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="new-balance" min="0" value="0" placeholder="Pontos Iniciais">
+                    </div>
+                </div>
+                
+                <button type="submit" style="background-color: var(--success)">Cadastrar no Sistema</button>
+            </form>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Sair da Conta</button>
+    </div>
+
+    <!-- 3. PAINEL DO ALUNO -->
+    <div id="student-screen" class="container hidden">
+        <h2>Extrato de Pontos</h2>
+        <div class="welcome-text" id="student-welcome">Bem-vindo</div>
+
+        <div class="balance-card">
+            <div>Seu Saldo Atual</div>
+            <div class="balance-amount" id="student-balance">0 pts</div>
+        </div>
+
+        <div class="statement">
+            <h3>📜 Histórico de Depósitos</h3>
+            <ul class="history-list" id="history-list"></ul>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Sair da Conta</button>
+    </div>
+
+    <script>
+        // Inicialização do Banco de Dados Local
+        const defaultUsers = {
+            "prof.carlos": { name: "Prof. Carlos Silva", role: "teacher", pass: "123" },
+            "ana.silva": { name: "Ana Silva (6º Ano)", role: "student", pass: "123", balance: 50 },
+            "joao.pedro": { name: "João Pedro (7º Ano)", role: "student", pass: "123", balance: 35 }
+        };
+
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify(defaultUsers));
+            localStorage.setItem('history', JSON.stringify([]));
+        }
+
+        let currentUser = null;
+
+        const loginScreen = document.getElementById('login-screen');
+        const teacherScreen = document.getElementById('teacher-screen');
+        const studentScreen = document.getElementById('student-screen');
+
+        // EVENTO DE LOGIN
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userIn = document.getElementById('username').value.trim().toLowerCase();
+            const passIn = document.getElementById('password').value;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+
+            if (users[userIn] && users[userIn].pass === passIn) {
+                currentUser = { id: userIn, ...users[userIn] };
+                renderDashboard();
+            } else {
+                alert('Usuário ou senha incorretos!');
+            }
+        });
+
+        // CONSTRUÇÃO E EXIBIÇÃO DAS TELAS
+        function renderDashboard() {
+            loginScreen.classList.add('hidden');
+            
+            if (currentUser.role === 'teacher') {
+                teacherScreen.classList.remove('hidden');
+                document.getElementById('teacher-welcome').innerText = `Olá, ${currentUser.name}`;
+                updateTeacherPanel();
+            } else if (currentUser.role === 'student') {
+                studentScreen.classList.remove('hidden');
+                document.getElementById('student-welcome').innerText = `Olá, ${currentUser.name}`;
+                updateStudentBalanceView();
+            }
+        }
+
+        // ATUALIZA OS DADOS EXIBIDOS NO PAINEL DO PROFESSOR
+        function updateTeacherPanel() {
+            populateStudentSelect();
+            renderUserManagementList();
+        }
+
+        // ATUALIZA AS OPÇÕES DE ALUNOS PARA TRANSFERÊNCIA
+        function populateStudentSelect() {
+            const select = document.getElementById('select-student');
+            select.innerHTML = '<option value="">Escolha um aluno...</option>';
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            for (let id in users) {
+                if (users[id].role === 'student') {
+                    select.innerHTML += `<option value="${id}">${users[id].name} (${users[id].balance} pts)</option>`;
+                }
+            }
+        }
+
+        // MONTA A LISTA COM BOTÃO "DELETAR" PARA CADA CONTA
+        function renderUserManagementList() {
+            const list = document.getElementById('system-users-list');
+            list.innerHTML = '';
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            
+            for (let id in users) {
+                const user = users[id];
+                const isProf = user.role === 'teacher';
+                const badge = isProf ? '<span class="badge badge-prof">Prof</span>' : `<span class="badge badge-aluno">${user.balance} pts</span>`;
+                
+                // Impede que o professor logado exclua a si mesmo acidentalmente
+                const deleteButton = id === currentUser.id 
+                    ? '<span style="color: #94a3b8; font-size:0.8rem;">(Você)</span>' 
+                    : `<button class="btn-delete" onclick="deleteUser('${id}')">Remover</button>`;
+
+                list.innerHTML += `
+                    <li class="user-item">
+                        <div>
+                            <strong>${user.name}</strong> <small style="color:#64748b">(@${id})</small>
+                            ${badge}
+                        </div>
+                        ${deleteButton}
+                    </li>
+                `;
+            }
+        }
+
+        // ADICIONAR NOVO USUÁRIO (ALUNO OU PROFESSOR)
+        document.getElementById('add-user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('new-name').value.trim();
+            const username = document.getElementById('new-username').value.trim().toLowerCase();
+            const pass = document.getElementById('new-password').value;
+            const role = document.getElementById('new-role').value;
+            const balance = parseInt(document.getElementById('new-balance').value) || 0;
+
+            const users = JSON.parse(localStorage.getItem('users'));
+
+            if (users[username]) {
+                alert('Erro: Esse nome de usuário já está sendo usado!');
+                return;
+            }
+
+            // Cria o objeto dinamicamente baseado no papel selecionado
+            users[username] = { name: name, role: role, pass: pass };
+            if (role === 'student') {
+                users[username].balance = balance;
+            }
+
+            localStorage.setItem('users', JSON.stringify(users));
+            alert(`Conta de ${name} cadastrada com sucesso!`);
+            
+            this.reset();
+            updateTeacherPanel(); // Atualiza a tela imediatamente
+        });
+
+        // DELETAR USUÁRIO DO SISTEMA
+        window.deleteUser = function(id) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            
+            if (confirm(`Tem certeza que deseja remover permanentemente o usuário "${users[id].name}" do sistema?`)) {
+                delete users[id];
+                localStorage.setItem('users', JSON.stringify(users));
+                updateTeacherPanel();
+            }
+        }
+
+        // DISTRIBUIÇÃO DE PONTOS
+        document.getElementById('transfer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('select-student').value;
+            const amount = parseInt(document.getElementById('points-amount').value);
+            const reason = document.getElementById('transfer-reason').value;
+
+            if (!studentId) {
+                alert('Selecione um aluno válido.');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users'));
+            const history = JSON.parse(localStorage.getItem('history'));
+
+            users[studentId].balance += amount;
+
+            const now = new Date();
+            const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')} às ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            history.push({
+                to: studentId,
+                fromName: currentUser.name,
+                amount: amount,
+                reason: reason,
+                date: formattedDate
+            });
+
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('history', JSON.stringify(history));
+
+            alert(`Feito! ${amount} pontos foram depositados para ${users[studentId].name}.`);
+            this.reset();
+            updateTeacherPanel();
+        });
+
+        // ATUALIZA VISÃO DO ALUNO
+        function updateStudentBalanceView() {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const history = JSON.parse(localStorage.getItem('history'));
+            
+            document.getElementById('student-balance').innerText = `${users[currentUser.id].balance} pts`;
+            
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            
+            const studentHistory = history.filter(item => item.to === currentUser.id);
+            
+            if (studentHistory.length === 0) {
+                list.innerHTML = '<li class="history-item">Nenhum ponto recebido ainda.</li>';
+                return;
+            }
+
+            studentHistory.reverse().forEach(item => {
+                list.innerHTML += `
+                    <li class="history-item">
+                        <div>
+                            <strong style="color:var(--success)">+${item.amount} pts</strong> de ${item.fromName}<br>
+                            <small style="color:#64748b">${item.reason}</small>
+                        </div>
+                        <div style="font-weight: 500">${item.date}</div>
+                    </li>
+                `;
+            });
+        }
+
+        // LOGOUT
+        function logout() {
+            currentUser = null;
+            teacherScreen.classList.add('hidden');
+            studentScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            document.getElementById('login-form').reset();
+        }
+    </script>
+</body>
+</html>
